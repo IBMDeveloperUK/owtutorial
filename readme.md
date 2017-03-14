@@ -55,8 +55,10 @@ Download the following two functions:
 https://raw.githubusercontent.com/edshee/owtutorial/master/forecast_from_latlong.js
 https://raw.githubusercontent.com/edshee/owtutorial/master/location_to_latlong.js
 
+*You may need to right click on the links above and "save file as"*
 
-
+Open a terminal window and navigate to the folder with your newly downloaded JS functions:
+`$ cd /path/to/functions/`
 
 ## Address To Locations Service
 
