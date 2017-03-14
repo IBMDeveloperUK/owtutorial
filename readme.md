@@ -32,6 +32,31 @@ The action executes and you should see the response:
 }
 ```
 
+Now click on the `Hello World with Params` action and run that too. On the *Invoking an Action* page you'll see there is a box for you to provide JSON Input.
+
+Change this value to:
+```
+{
+    "message": "hello from OpenWhisk"
+}
+```
+And run the action. You should get the response:
+```
+{
+  "message": "you sent me hello from OpenWhisk"
+}
+```
+
+# Creating the Functions for our Bot
+
+Now that we're familiar with how to run actions from the UI let's upload the functions we need for the bot.
+
+Download the following two functions:
+https://raw.githubusercontent.com/edshee/owtutorial/master/forecast_from_latlong.js
+https://raw.githubusercontent.com/edshee/owtutorial/master/location_to_latlong.js
+
+
+
 
 ## Address To Locations Service
 
