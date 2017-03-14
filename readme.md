@@ -58,7 +58,9 @@ https://raw.githubusercontent.com/edshee/owtutorial/master/location_to_latlong.j
 *You may need to right click on the links above and "save file as"*
 
 Open a terminal window and navigate to the folder with your newly downloaded JS functions:
-`$ cd /path/to/functions/`
+```
+$ cd /path/to/functions/
+```
 
 ## Address To Locations Service
 
@@ -181,57 +183,41 @@ Okay, great, that's the first two services working.
 
 ## Sending Messages To Slack
 
-Once we have a forecast, we need to send it to Slack as a message from our bot. Slack provides an easy method for writing simple bots using their webhook integration. [Incoming Webhooks](https://api.slack.com/incoming-webhooks) provide applications with URLs to send data to using normal HTTP requests. The contents of the JSON request body will be posted into the channel as a bot message.
+Slack is basically a messaging app on steroids.
 
-Create a new [Incoming Webhook Integration](https://my.slack.com/services/new/incoming-webhook/) for your channel and copy the URL provided by Slack to use with our bot.
+It's meant for teams and workplaces, can be used across multiple devices and platforms, and is equipped with robust features that allow you to not only chat one-on-one with associates but also in groups. You're able to upload and share files with them too as well as integrate with other apps and services. You can granularly control almost every setting, including the ability to create custom emoji.
 
-We could now write another microservice to handle sending these HTTP requests but OpenWhisk comes with integrations for a number of third-party systems meaning we don't have to!
+Go to https://slack.com/create and create a new team. When it gets to the `send invitations` screen just click on `skip for now`.
 
-These integrations are available as _packages_, which bundle Actions and Trigger Feeds and make them available to all users in the system. We can see what packages are available using the following command...
+Once you are up and running with your team channel go to https://api.slack.com/apps/new and create a new App for your team.
 
+*Your app can be called whatever you like but make sure you select the team you just created as the "Development Slack Team"*
+
+Now click on `Incoming Webhooks` (on the left hand side) and enable the "Activate Incoming Webhooks" checkbox.
+
+Click on `Add New Webhook to Team` at the bottom of the page and select the channel "#General" in the `Post to` dropdown.
+
+Copy the Webhook URL that gets generated. We will need it for the next step.
+
+In your browser, navigate back to your OpenWhisk dashboard and click on `Browse Public Packages`.
+
+*Packages* are a way for OpenWhisk users to re-use actions that have been created by others. There are a lot of publicly available packages but you can also publish your own (Privately or Publicly).
+
+Click on `Slack` in the package browser and click on `New Binding` in the bottom left.
+
+Choose any name for your configuration and pick a username (e.g. OpenWhisk). Make sure that the `channel` is set to `General` and then paste your slack webhook url in to the `url` field.
+
+Click on `Save Configuration`
+
+Now click on `Run this Action`. In the JSON Input field change the value to:
 ```
-$ wsk package list /whisk.system
-packages
-/whisk.system/cloudant                                            shared
-/whisk.system/alarms                                              shared
-/whisk.system/samples                                             shared
-/whisk.system/websocket                                           shared
-/whisk.system/slack                                               shared
-/whisk.system/github                                              shared
-/whisk.system/system                                              shared
-/whisk.system/util                                                shared
-/whisk.system/watson                                              shared
-/whisk.system/weather                                             shared
-/whisk.system/pushnotifications                                   shared
+{
+    "text": "Hello from OpenWhisk!"
+}
 ```
+Click on `Run with this Value`
 
-Looks like there's a Slack integration already. Retrieving the package summary will tell us more.
-
-```
-$ wsk package get --summary /whisk.system/slack
-package /whisk.system/slack: This package interacts with the Slack messaging service
-   (params: username url channel token)
- action /whisk.system/slack/post: Post a message to Slack
-```
-
-We can then invoke this Action to post messages to Slack without writing any code.
-
-```
-$ wsk action invoke /whisk.system/slack/post -p text "Hello" -p channel $CHANNEL -p url $WEBHOOK_URL
-ok: invoked /whisk.system/slack/post with id 78070fe2acb54c70ae49c0fa047aee51
-```
-
-Seeing the message pop-up in our Slack channel verifies this works.
-
-I'd like to bind default parameters for the Action but this isn't supported without copying global packages to your local namespace first. Let's do this now...
-
-```
-$ wsk action create --copy webhook /whisk.system/slack/post -p url $WEBHOOK -p channel $CHANNEL -p username "Weather Bot" -p icon_emoji ":sun_with_face:"
-
-ok: created action webhook
-```
-
-This customised Slack service can be invoked with just the _text_ parameter and gives us a friendly bot message in the #weather channel.
+If all has gone successfully you should see a new message appear in your slack channel saying "Hello from OpenWhisk!".
 
 ## Creating Weather Bot Using Sequences
 
@@ -243,36 +229,28 @@ Sequences allow you to define Actions that are composed by executing other Actio
 
 Let's define a new sequence for our bot to join these services together.
 
-```
-$ wsk action create location_forecast --sequence /james.thomas@uk.ibm.com_dev/location_to_latlong,/james.thomas@uk.ibm.com_dev/forecast_from_latlong,/james.thomas@uk.ibm.com_dev/webhook
-ok: created action location_forecast
-```
+Click on the `location_to_latlong` action and then click on `Link into a Sequence` (Hint: bottom right!)
 
-With this meta-service defined, we can invoke _location_forecast_ with the input parameter for the first service (_address_) and the forecast for that location should appear in Slack.
+Click on `My Actions`, select the `forecast_from_latlong` action and click `Add to Sequence`
 
+Our sequence now sends the result of `location_to_latlong` in to `forecast_from_latlong` meaning we can give it a location and it'll return the forecast. Yay!
+
+We don't want our sequence to stop there though. We'd like it to post this result straight to our slack team.
+
+Click on `Extend` from the sequence view and then select `Slack`.
+
+Make sure the binding you created earlier is selected (on the left side) and then click `Add to Sequence`.
+
+Now click on `This Looks Good`, give your sequence a name and save it.
+
+Click on `Run this Sequence` and run it with the following input:
 ```
-$ wsk action invoke location_forecast -p address "London" -b
-ok: invoked location_forecast with id d63b40bb36c54cfbaf8262b6f7e5c2e9
 {
-    "activationId": "d63b40bb36c54cfbaf8262b6f7e5c2e9",
-    "annotations": [],
-    "end": 1473179750086,
-    "logs": [],
-    "name": "location_forecast",
-    "namespace": "james.thomas@uk.ibm.com",
-    "publish": false,
-    "response": {
-        "result": {},
-        "status": "success",
-        "success": true
-    },
-    "start": 1473179746914,
-    "subject": "james.thomas@uk.ibm.com",
-    "version": "0.0.1"
+    "address": "London, UK"
 }
 ```
 
-Excellent! It worked.
+Excellent! It worked. You're now able to change the address parameter and the weather forecast will appear in your slack team.
 
 ## Bot Forecasts
 
