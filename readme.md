@@ -262,46 +262,25 @@ Actions can be bound to Triggers using Rules. When a Trigger is fired, the Actio
 
 Let's look at binding the bot service to a sample trigger.
 
+Click on the sequence you created and click on `Automate`
+
+*We can see a selection of feeds that could be used as triggers in OpenWhisk. It's possible to configure your own feeds so that actions can be automated off all sorts of events.*
+
+Let's pick the `Periodic (Alarm-based Triggers)` option. Click `New Alarm`.
+
+*We can create a scheduled trigger so that actions will run on a set time period. E.g. we may want to get a notification of the weather at 8am every morning.*
+
+Select the Minutes tab at the top and then enter `1` in the `Invoke every N Minutes` field. For the payload let's pass in the following (feel free to specify your own):
 ```
-$ wsk trigger create forecast
-ok: created trigger forecast
-$ wsk rule create forecast_rule forecast location_forecast
-$ wsk trigger fire forecast -p address "london"
-ok: triggered forecast with id 49914a20416d416d8c90282d59eebee3
-```
-
-Once we fired the trigger, passing in the _address_ parameter, the bot was automatically invoked and posted the forecast for London to the channel.
-
-Now we understand triggers and rules, let's look at invoking the bot every morning to tell us the forecast before we set off for work.
-
-## Morning Forecasts
-
-Triggers can be registered to listen to exteral event sources, like messages on a queue or updates to a database.
-
-Whenever a new external event occurs, the trigger will be fired automatically. If we have Actions bound via Rules to those Triggers, they will also be invoked.
-
-Triggers bind to external event sources during creation by passing in a reference to the external trigger feed to connect to. OpenWhisk's public packages contain a number of trigger feeds that we can use for external event sources.
-
-One of those public trigger feeds is in the Alarm package. This alarm feed executes triggers at pre-specified intervals. Using this feed with our weather bot trigger, we could set it up to execute every morning for a particular address and tell us the forecast every for London before we set off for work.
-
-Let's do that now...
-
-```
-$ wsk package get /whisk.system/alarms --summary
-package /whisk.system/alarms: Alarms and periodic utility
-   (params: cron trigger_payload)
- feed   /whisk.system/alarms/alarm: Fire trigger when alarm occurs
-$ wsk trigger create regular_forecast --feed /whisk.system/alarms/alarm -p cron '*/10 * * * * *' -p trigger_payload '{"address":"London"}'
-ok: created trigger feed regular_forecast
-$ wsk rule create regular_forecast_rule regular_forecast location_forecast
-ok: created rule regular_forecast_rule
+{
+    "address": "Bangalore, India"
+}
 ```
 
-The trigger schedule is provided by the _cron_ parameter, which we've set up to run every ten seconds to test it out. Binding this new trigger to our bot service, the forecast for London starts to appear in the channel!
+Give your trigger a name and create it.
 
-Okay, that's great but let's turn off this alarm before it drives us mad.
+Now click on `Next` and then `This Looks Good`. Finally `Save Rule`.
 
-```
-$ wsk rule disable regular_forecast_rule
-ok: rule regular_forecast_rule is inactive
-```
+*We've now created a new Rule (based on a new trigger) that will run our sequence every minute and alert us to the weather in Bangalore*
+
+You're now fully equipped to go out and start building your own OpenWhisk actions. **Great Success!!!**
