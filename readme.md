@@ -21,7 +21,17 @@ Later on, we'll look at using a neat feature of the platform (sequences) to bind
 1. Switch back to your browser and click `Back to Getting Started` or go to https://console.ng.bluemix.net/openwhisk
 2. Click `Develop in your Browser`
 
-You should now see your OpenWhisk 
+We can now see the OpenWhisk user interface. There should be two actions included in your space by default.
+
+Click on the `Hello World` action and then click `Run this Action`
+
+The action executes and you should see the response:
+```
+{
+  "message": "hello world"
+}
+```
+
 
 ## Address To Locations Service
 
